@@ -6,12 +6,14 @@ import (
 	"gopkg.in/eapache/queue.v1"
 )
 
+// Synchronous FIFO queue
 type SyncQueue struct {
 	lock    sync.Mutex
 	popable *sync.Cond
 	buffer  *queue.Queue
 }
 
+// Create a new SyncQueue
 func NewSyncQueue() *SyncQueue {
 	ch := &SyncQueue{
 		buffer: queue.New(),
@@ -20,6 +22,7 @@ func NewSyncQueue() *SyncQueue {
 	return ch
 }
 
+// Pop an item from SyncQueue, will block if SyncQueue is empty
 func (q *SyncQueue) Pop() interface{} {
 	c := q.popable
 	buffer := q.buffer
@@ -36,6 +39,7 @@ func (q *SyncQueue) Pop() interface{} {
 	return v
 }
 
+// Try to pop an item from SyncQueue, will return immediately with bool=false if SyncQueue is empty
 func (q *SyncQueue) TryPop() (interface{}, bool) {
 	buffer := q.buffer
 
@@ -52,6 +56,7 @@ func (q *SyncQueue) TryPop() (interface{}, bool) {
 	}
 }
 
+// Push an item to SyncQueue. Always returns immediately without blocking
 func (q *SyncQueue) Push(v interface{}) {
 	q.lock.Lock()
 	q.buffer.Add(v)
@@ -59,12 +64,10 @@ func (q *SyncQueue) Push(v interface{}) {
 	q.lock.Unlock()
 }
 
+// Get the length of SyncQueue
 func (q *SyncQueue) Len() (l int) {
 	q.lock.Lock()
 	l = q.buffer.Length()
 	q.lock.Unlock()
 	return
-}
-
-func (q *SyncQueue) Close() {
 }
