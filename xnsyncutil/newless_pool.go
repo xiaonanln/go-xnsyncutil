@@ -2,21 +2,21 @@ package xnsyncutil
 
 import "sync"
 
-type newlessPool struct {
+type NewlessPool struct {
 	lock      sync.Mutex
 	availCond *sync.Cond
 	items     []interface{}
 }
 
-func NewNewlessPool() *newlessPool {
-	pool := &newlessPool{
+func NewNewlessPool() *NewlessPool {
+	pool := &NewlessPool{
 		items: nil,
 	}
 	pool.availCond = sync.NewCond(&pool.lock)
 	return pool
 }
 
-func (pool *newlessPool) Get() (v interface{}) {
+func (pool *NewlessPool) Get() (v interface{}) {
 	pool.lock.Lock()
 	for len(pool.items) == 0 {
 		pool.availCond.Wait()
@@ -29,7 +29,7 @@ func (pool *newlessPool) Get() (v interface{}) {
 	return
 }
 
-func (pool *newlessPool) TryGet() (v interface{}) {
+func (pool *NewlessPool) TryGet() (v interface{}) {
 	pool.lock.Lock()
 	n := len(pool.items)
 	if n > 0 {
@@ -42,7 +42,7 @@ func (pool *newlessPool) TryGet() (v interface{}) {
 	return
 }
 
-func (pool *newlessPool) Put(v interface{}) {
+func (pool *NewlessPool) Put(v interface{}) {
 	pool.lock.Lock()
 	pool.items = append(pool.items, v)
 	pool.availCond.Signal()
