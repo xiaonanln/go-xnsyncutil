@@ -44,7 +44,6 @@ func seqTestSyncQueue(t *testing.T, q *SyncQueue) {
 			t.Fatalf("queue length should be %v, but is %v", SEQ_TEST_N-i-1, q.Len())
 		}
 	}
-	q.Close()
 }
 
 func fuzzyTestSyncQueue(t *testing.T, q *SyncQueue) {
@@ -74,7 +73,6 @@ func fuzzyTestSyncQueue(t *testing.T, q *SyncQueue) {
 			t.Fatalf("pop val should be %v, but is %v", val, pv)
 		}
 	}
-	q.Close()
 }
 
 type syncQueueByChannel struct {
