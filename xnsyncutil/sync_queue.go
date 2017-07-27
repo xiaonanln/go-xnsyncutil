@@ -11,6 +11,7 @@ type SyncQueue struct {
 	lock    sync.Mutex
 	popable *sync.Cond
 	buffer  *queue.Queue
+	closed  bool
 }
 
 // Create a new SyncQueue
@@ -23,44 +24,49 @@ func NewSyncQueue() *SyncQueue {
 }
 
 // Pop an item from SyncQueue, will block if SyncQueue is empty
-func (q *SyncQueue) Pop() interface{} {
+func (q *SyncQueue) Pop() (v interface{}) {
 	c := q.popable
 	buffer := q.buffer
 
 	q.lock.Lock()
-	for buffer.Length() == 0 {
+	for buffer.Length() == 0 && !q.closed {
 		c.Wait()
 	}
 
-	v := buffer.Peek()
-	buffer.Remove()
+	if buffer.Length() > 0 {
+		v = buffer.Peek()
+		buffer.Remove()
+	}
 
 	q.lock.Unlock()
-	return v
+	return
 }
 
 // Try to pop an item from SyncQueue, will return immediately with bool=false if SyncQueue is empty
-func (q *SyncQueue) TryPop() (interface{}, bool) {
+func (q *SyncQueue) TryPop() (v interface{}, ok bool) {
 	buffer := q.buffer
 
 	q.lock.Lock()
 
 	if buffer.Length() > 0 {
-		v := buffer.Peek()
+		v = buffer.Peek()
 		buffer.Remove()
-		q.lock.Unlock()
-		return v, true
-	} else {
-		q.lock.Unlock()
-		return nil, false
+		ok = true
+	} else if q.closed {
+		ok = true
 	}
+
+	q.lock.Unlock()
+	return
 }
 
 // Push an item to SyncQueue. Always returns immediately without blocking
 func (q *SyncQueue) Push(v interface{}) {
 	q.lock.Lock()
-	q.buffer.Add(v)
-	q.popable.Signal()
+	if !q.closed {
+		q.buffer.Add(v)
+		q.popable.Signal()
+	}
 	q.lock.Unlock()
 }
 
@@ -70,4 +76,13 @@ func (q *SyncQueue) Len() (l int) {
 	l = q.buffer.Length()
 	q.lock.Unlock()
 	return
+}
+
+func (q *SyncQueue) Close() {
+	q.lock.Lock()
+	if !q.closed {
+		q.closed = true
+		q.popable.Signal()
+	}
+	q.lock.Unlock()
 }
