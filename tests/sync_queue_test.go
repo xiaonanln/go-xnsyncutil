@@ -44,6 +44,19 @@ func seqTestSyncQueue(t *testing.T, q *SyncQueue) {
 			t.Fatalf("queue length should be %v, but is %v", SEQ_TEST_N-i-1, q.Len())
 		}
 	}
+
+	if q.Len() != 0 {
+		t.Fatal("not zero")
+	}
+
+	q.Close()
+	if v := q.Pop(); v != nil {
+		t.Fatal("not nil")
+	}
+
+	if v, ok := q.TryPop(); v != nil || !ok {
+		t.Fatal("TryPop error after close")
+	}
 }
 
 func fuzzyTestSyncQueue(t *testing.T, q *SyncQueue) {
