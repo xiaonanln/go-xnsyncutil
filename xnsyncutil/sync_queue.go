@@ -78,6 +78,9 @@ func (q *SyncQueue) Len() (l int) {
 	return
 }
 
+// Close SyncQueue
+//
+// After close, Pop will return nil without block, and TryPop will return v=nil, ok=True
 func (q *SyncQueue) Close() {
 	q.lock.Lock()
 	if !q.closed {
