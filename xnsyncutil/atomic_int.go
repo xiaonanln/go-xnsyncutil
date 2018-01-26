@@ -36,6 +36,24 @@ func (ai *AtomicInt64) Load() int64 {
 	return atomic.LoadInt64((*int64)(ai))
 }
 
+type AtomicInt32 int32
+
+// Store int value atomically
+func (ai *AtomicInt32) Store(v int32) {
+	atomic.StoreInt32((*int32)(ai), v)
+}
+
+// Add int value atomically
+func (ai *AtomicInt32) Add(delta int32) {
+	atomic.AddInt32((*int32)(ai), delta)
+}
+
+// Load int value atomically
+func (ai *AtomicInt32) Load() int32 {
+	return atomic.LoadInt32((*int32)(ai))
+}
+
+
 type AtomicBool AtomicInt
 
 // Store bool value atomically
